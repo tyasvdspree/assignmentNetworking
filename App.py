@@ -1,12 +1,32 @@
 import socket
+import random
+import select
+import itertools
+import json
 
 hostname = socket.gethostname()
-IPAddr = socket.gethostbyname(hostname)
+myIpAddr = socket.gethostbyname(hostname)
 teamName = ""
 className = "DINF2"
 studentnNr = "0870508"
 clientId = 1
+serverIp = None
 
+# create a socket object
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# reserve a port on your computer in this
+# it can be any number between 1024 and 49151
+port = random.randrange(1024, 49151)
+
+# bind the port and IP to the socket
+server.bind(('', port))
+
+# Listen for incoming connections
+server.listen(5)
+
+# Sockets from which we expect to read
+inputs = [server]
 
 class Message:
     def __init__(self, studentnr, classname, clientid, teamname):
@@ -14,7 +34,7 @@ class Message:
         self.__classname = classname
         self.__clientid = clientid
         self.__teamname = teamname
-        self.__ip = IPAddr
+        self.__ip = myIpAddr
         self.__secret = None
         self.__status = None
 
@@ -45,3 +65,22 @@ class Message:
     def getStatus(self):
         return self.__status
 
+
+while True:
+
+    message = Message(studentnNr, className, clientId, teamName)
+
+    readable = select.select(inputs, [], [])
+    readlist = list(itertools.chain(*readable))
+
+    for connection in readlist:
+        if connection == server:
+            client, clientAddr = connection.accept()
+            inputs.append(client)
+        else:
+            data = connection.recv(1024)
+            if data:
+                connection.send(bytes(json.dump(message)))
+            else:
+                inputs.remove(connection)
+                connection.close()
