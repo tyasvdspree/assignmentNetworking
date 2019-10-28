@@ -1,4 +1,5 @@
-from Handler import *
+from _thread import *
+import threading
 import socket
 import random
 import json
@@ -10,36 +11,27 @@ TEAMNAME = "PWA"  # programmers with attitude
 CLASSNAME = "DINF2"
 
 TEAMMATESTUDENTNR = ''
-STUDENTNR = input("Please provite the ip of the peer client you wish to connect with")
-if STUDENTNR == "0870508":
+STUDENTNR = input("Please provite your student number")
+if STUDENTNR == "0870508" or STUDENTNR == "":
     TEAMMATESTUDENTNR = '0966770'
+elif STUDENTNR == '0966770':
+    TEAMMATESTUDENTNR = '0870508'
 
 SERVERIP = '145.24.222.103'
 
 MYIP = socket.gethostbyname(socket.gethostname())
 
-peerIp = input("Please provite the ip of the peer client you wish to connect with")
+peerIp = input("Please provite the ip of the peer client you wish to connect with. If left blank will run as both clients")
 if peerIp == '':
     peerIp = MYIP
 
+print_lock = threading.Lock()
+
 # create a peerListenerSocket object
-peerListenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 peerConnectionSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# reserve a port on your computer in this
-# it can be any number between 1024 and 49151
-port = random.randrange(1024, 49151)
-
-# bind the port and IP to the peerListenerSocket
-peerListenerSocket.bind((MYIP, port))
-
-# Listen for incoming connections
-peerListenerSocket.listen(5)
-
-# Sockets from which we expect to read
-inputs = [peerListenerSocket]
-
+messageReceived = False
 
 class Message(object):
     def __init__(self, studentnr, classname, clientid, teamname, ip=MYIP, secret=None, status=None):
@@ -101,9 +93,34 @@ def Server(connection):
 
     print_lock.release()
     connection.close()
+    messageReceived = True
+
+
+def peerSocketHandeler(socket):
+    while True:
+        # establish connection with client
+        client, addr = socket.accept()
+
+        # lock acquired by client
+        print_lock.acquire()
+        print('Connected to :', addr[0], ':', addr[1])
+
+        # Start a new thread and return its identifier
+        start_new_thread(Server, (client,))
 
 
 def Main():
+    # create a peerListenerSocket object
+    peerListenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # bind the port and IP to the peerListenerSocket
+    peerListenerSocket.bind(('', 12345))
+
+    # Listen for incoming connections
+    peerListenerSocket.listen(5)
+
+    start_new_thread(peerSocketHandeler, (peerListenerSocket,))
+
     serverSocket.connect((SERVERIP, 8001))
     print(serverSocket.recv(BYTE_SIZE))
     message = Message(STUDENTNR, CLASSNAME, 1, TEAMNAME)
@@ -114,7 +131,8 @@ def Main():
     message = Message(**answer)
     peerConnectionSocket.connect((MYIP, 12345))
     peerConnectionSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
-
+    while not messageReceived:
+        pass
 
 if __name__ == '__main__':
     Main()
