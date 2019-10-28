@@ -4,6 +4,10 @@ import socket
 import random
 import json
 
+# member: 0870508 Tyas van de Spree
+# member: 0966770 Maarten de Goede
+# class: DINF2
+
 BYTE_SIZE = 1024
 
 TEAMNAME = "PWA"  # programmers with attitude
@@ -11,8 +15,10 @@ TEAMNAME = "PWA"  # programmers with attitude
 CLASSNAME = "DINF2"
 
 TEAMMATESTUDENTNR = ''
-STUDENTNR = input("Please provite your student number")
+STUDENTNR = input("Please provide your student number")
 if STUDENTNR == "0870508" or STUDENTNR == "":
+    if STUDENTNR == "":
+        STUDENTNR = "0870508"
     TEAMMATESTUDENTNR = '0966770'
 elif STUDENTNR == '0966770':
     TEAMMATESTUDENTNR = '0870508'
@@ -21,7 +27,7 @@ SERVERIP = '145.24.222.103'
 
 MYIP = socket.gethostbyname(socket.gethostname())
 
-peerIp = input("Please provite the ip of the peer client you wish to connect with. If left blank will run as both clients")
+peerIp = input("Please provide the ip of the peer client you wish to connect with. If left blank will run as both clients")
 if peerIp == '':
     peerIp = MYIP
 
