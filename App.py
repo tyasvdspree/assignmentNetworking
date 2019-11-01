@@ -1,9 +1,9 @@
 from _thread import *
 import threading
 import socket
-import random
 import json
 
+# team: PWA
 # member: 0870508 Tyas van de Spree
 # member: 0966770 Maarten de Goede
 # class: DINF2
