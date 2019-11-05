@@ -25,7 +25,7 @@ elif STUDENTNR == '0966770':
 
 SERVERIP = '145.24.222.103'
 
-MYIP = socket.gethostbyname(socket.gethostname())
+MYIP = socket.gethostbyname(socket.gethostbyname("localhost"))
 
 peerIp = input("Please provide the ip of the peer client you wish to connect with. If left blank will run as both clients")
 if peerIp == '':
@@ -38,6 +38,7 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 peerConnectionSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 messageReceived = False
+
 
 class Message(object):
     def __init__(self, studentnr, classname, clientid, teamname, ip=MYIP, secret=None, status=None):
@@ -78,13 +79,12 @@ class Message(object):
 
 
 def Server(connection):
-
     while True:
         data = connection.recv(BYTE_SIZE)
         print(data)
         if data:
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            serverSocket.connect((SERVERIP, 8001))
+            serverSocket.connect((SERVERIP, 8010))
             answer = serverSocket.recv(BYTE_SIZE)
             print(answer)
             data = json.loads(data)
@@ -116,29 +116,33 @@ def peerSocketHandeler(socket):
 
 
 def Main():
-    # create a peerListenerSocket object
-    peerListenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if STUDENTNR == '0966770':
+        # create a peerListenerSocket object
+        peerListenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # bind the port and IP to the peerListenerSocket
-    peerListenerSocket.bind(('', 12345))
+        # bind the port and IP to the peerListenerSocket
+        peerListenerSocket.bind(('', 12345))
 
-    # Listen for incoming connections
-    peerListenerSocket.listen(5)
+        # Listen for incoming connections
+        peerListenerSocket.listen(5)
 
-    start_new_thread(peerSocketHandeler, (peerListenerSocket,))
+        start_new_thread(peerSocketHandeler, (peerListenerSocket,))
 
-    serverSocket.connect((SERVERIP, 8001))
-    print(serverSocket.recv(BYTE_SIZE))
-    message = Message(STUDENTNR, CLASSNAME, 1, TEAMNAME)
-    serverSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
-    answer = serverSocket.recv(BYTE_SIZE)
-    print(answer)
-    answer = json.loads(answer)
-    message = Message(**answer)
-    peerConnectionSocket.connect((MYIP, 12345))
-    peerConnectionSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
+    else:
+        serverSocket.connect((SERVERIP, 8010))
+        print(serverSocket.recv(BYTE_SIZE))
+        message = Message(STUDENTNR, CLASSNAME, 1, TEAMNAME)
+        serverSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
+        answer = serverSocket.recv(BYTE_SIZE)
+        print(answer)
+        answer = json.loads(answer)
+        message = Message(**answer)
+        peerConnectionSocket.connect((peerIp, 12345))
+        peerConnectionSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
+
     while not messageReceived:
         pass
+
 
 if __name__ == '__main__':
     Main()
