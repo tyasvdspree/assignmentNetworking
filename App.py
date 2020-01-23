@@ -23,7 +23,7 @@ if STUDENTNR == "0870508" or STUDENTNR == "":
 elif STUDENTNR == '0966770':
     TEAMMATESTUDENTNR = '0870508'
 
-SERVERIP = '145.24.222.103'
+SERVERIP = '145.24.238.191'
 
 MYIP = socket.gethostbyname(socket.gethostbyname("localhost"))
 
@@ -84,7 +84,7 @@ def Server(connection):
         print(data)
         if data:
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            serverSocket.connect((SERVERIP, 8010))
+            serverSocket.connect((SERVERIP, 5001))
             answer = serverSocket.recv(BYTE_SIZE)
             print(answer)
             data = json.loads(data)
@@ -129,7 +129,7 @@ def Main():
         start_new_thread(peerSocketHandeler, (peerListenerSocket,))
 
     else:
-        serverSocket.connect((SERVERIP, 8010))
+        serverSocket.connect((SERVERIP, 5001))
         print(serverSocket.recv(BYTE_SIZE))
         message = Message(STUDENTNR, CLASSNAME, 1, TEAMNAME)
         serverSocket.send(bytes(json.dumps(message.__dict__), 'utf8'))
